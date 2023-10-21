@@ -1,0 +1,50 @@
+<div class="main-page p-4 flex justify-center items-center">
+  <div class="flex flex-col w-1/2 gap-4">
+    <span class="font-medium text-2xl">こんにゃくの重量推定</span>
+    <app-upload-box></app-upload-box>
+
+    <mat-divider></mat-divider>
+    <div class="flex flex-col gap-4">
+      <span>Additional Informations</span>
+      <mat-form-field class="example-full-width">
+        <mat-label>QR size</mat-label>
+        <input type="number" matInput placeholder="15" [value]="15" [disabled]="true"/>
+        <span matSuffix>cm &nbsp;</span>
+      </mat-form-field>
+      
+      <mat-label>Size Range</mat-label>
+      <div class="flex flex-row items-center justify-between gap-4">
+        <div class="w-64">
+            <mat-slider class="w-64" min="200" max="2000" step="100" discrete [displayWith]="formatLabel" [style]="'width: 300px'" [disabled]="true">
+                <input value="500" matSliderStartThumb />
+                <input value="1000" matSliderEndThumb />
+            </mat-slider>
+        </div>
+        <div class="flex flex-row gap-4">
+            <div class="flex flex-col items-center gap-2 rounded-2xl bg-slate-100 p-4">
+            <span class="font-semibold">小</span>
+            <span class="font-light text-2xl">~300</span>
+        </div>
+        <div class="flex flex-col items-center gap-2 rounded-2xl bg-slate-100 p-4">
+            <span class="font-semibold">中</span>
+            <span class="font-light text-2xl">300 - 1000</span>
+        </div>
+        <div class="flex flex-col items-center gap-2 rounded-2xl bg-slate-100 p-4">
+            <span class="font-semibold">大</span>
+            <span class="font-light text-2xl">1000~</span>
+        </div>
+        <div class="flex flex-col items-center gap-2 rounded-2xl bg-slate-100 p-4">
+            <span class="font-semibold">外</span>
+            <span class="font-light text-2xl">300</span>
+        </div>
+        </div>
+      </div>
+
+      <div class="flex flex-row gap-4 justify-center pt-11">
+        <button mat-raised-button color="primary" [disabled]="true">Submit</button>
+        <button mat-button color="warn">Reset</button>
+      </div>
+
+    </div>
+  </div>
+</div>

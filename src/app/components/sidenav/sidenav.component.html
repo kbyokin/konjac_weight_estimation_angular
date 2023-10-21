@@ -1,0 +1,12 @@
+<div class="p-4">
+  <div>Konjac Weight Estimation</div>
+  <div>
+    <div>
+        <input type="file" accept="image/*" (change)="selectFiles($event)" (click)="onEraseProcessedImage()">
+        <button *ngIf="selectedFile" mat-raised-button color="primary" (click)="onUpload()">Upload File</button>
+        <button *ngIf="!selectedFile" mat-raised-button color="primary" disabled (click)="onUpload()">Upload File</button>
+        <img *ngIf="processedImageUrl" [src]="processedImageUrl" alt="Processed Image" />
+        <button mat-stroked-button color="accent" (click)="getImage()">Get Image</button>
+    </div>
+  </div>
+</div>

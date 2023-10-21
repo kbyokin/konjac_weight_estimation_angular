@@ -1,0 +1,14 @@
+.preview-img {
+    &:hover {
+        img {
+            opacity: 20%;
+        }
+        .delete-btn {
+            visibility: visible;
+        }
+    }
+}
+
+.delete-btn {
+    visibility: hidden;
+}

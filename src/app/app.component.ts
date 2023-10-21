@@ -7,4 +7,9 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'konjac_web_app';
+  statusText!: string;
+
+  onStatusChange(event: any) {
+    this.statusText = event
+  }
 }

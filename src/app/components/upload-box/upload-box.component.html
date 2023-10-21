@@ -1,0 +1,33 @@
+<div
+  *ngIf="!url"
+>
+  <div class="flex flex-col gap-4 items-center p-4 border-2 rounded-2xl border-dashed" *ngIf="!isLoading">
+    <mat-icon
+      aria-hidden="false"
+      aria-label="Example home icon"
+      fontIcon="cloud_upload"
+      [inline]="true"
+      [style]="'font-size: 48px; font-weight: 200;'"
+    ></mat-icon>
+    <span class="font-light text-2xl">Drag a file or</span>
+    <input
+      type="file"
+      accept="image/*"
+      #browse
+      hidden
+      (change)="selectFiles($event)"
+    />
+    <button mat-raised-button color="primary" (click)="browse.click()">
+      Browse Files
+    </button>
+  </div>
+
+  <div *ngIf="isLoading">
+    <mat-spinner></mat-spinner>
+  </div>
+</div>
+
+<div *ngIf="url" class="preview-img">
+  <img [src]="url" alt="" />
+  <span class="bg-red-100 text-red-600 p-1 rounded-md absolute delete-btn cursor-pointer top-1/2 right-1/2" (click)="onEraseProcessedImage()">Delete</span>
+</div>
