@@ -1,7 +1,9 @@
 .preview-img {
+    width: 30%;
     &:hover {
         img {
             opacity: 20%;
+            cursor: pointer;
         }
         .delete-btn {
             visibility: visible;

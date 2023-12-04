@@ -1,50 +1,131 @@
 <div class="main-page p-4 flex justify-center items-center">
-  <div class="flex flex-col w-1/2 gap-4">
+  <div class="flex flex-col gap-4">
     <span class="font-medium text-2xl">こんにゃくの重量推定</span>
-    <app-upload-box></app-upload-box>
 
-    <mat-divider></mat-divider>
-    <div class="flex flex-col gap-4">
-      <span>Additional Informations</span>
-      <mat-form-field class="example-full-width">
-        <mat-label>QR size</mat-label>
-        <input type="number" matInput placeholder="15" [value]="15" [disabled]="true"/>
-        <span matSuffix>cm &nbsp;</span>
-      </mat-form-field>
-      
-      <mat-label>Size Range</mat-label>
-      <div class="flex flex-row items-center justify-between gap-4">
-        <div class="w-64">
-            <mat-slider class="w-64" min="200" max="2000" step="100" discrete [displayWith]="formatLabel" [style]="'width: 300px'" [disabled]="true">
-                <input value="500" matSliderStartThumb />
-                <input value="1000" matSliderEndThumb />
-            </mat-slider>
+    <div class="flex flex-row gap-4">
+      <div class="flex flex-col control-panel gap-4">
+        <mat-radio-group
+          (change)="onModeChange($event)"
+          [value]="selectedMode"
+          aria-label="Select an option"
+        >
+          <mat-radio-button value="1">Upload Image</mat-radio-button>
+          <mat-radio-button value="2">Stream</mat-radio-button>
+        </mat-radio-group>
+
+        <app-upload-box
+          *ngIf="selectedMode == '1'"
+          (onUploadChange)="onUploadFileChange($event)"
+        ></app-upload-box>
+
+        <div *ngIf="selectedMode == '2'">
+          <p *ngIf="imageUrl == ''">Error Fetching Image</p>
+          <mat-spinner *ngIf="imageUrl == ''" [diameter]="40"></mat-spinner>
+          <img
+            *ngIf="imageUrl !== ''"
+            [src]="imageUrl"
+            alt="Image"
+            width="40%"
+          />
         </div>
-        <div class="flex flex-row gap-4">
-            <div class="flex flex-col items-center gap-2 rounded-2xl bg-slate-100 p-4">
-            <span class="font-semibold">小</span>
-            <span class="font-light text-2xl">~300</span>
+
+        <mat-divider></mat-divider>
+
+        <div  *ngIf="!resImage" class="flex flex-row">
+          <div class="flex flex-col basis-1/2 mr-8">
+            <div class="flex flex-col">
+              <span>Additional Informations</span>
+              <mat-form-field class="example-full-width">
+                <mat-label>QR size</mat-label>
+                <input
+                  type="number"
+                  matInput
+                  [value]="qrcodeSize"
+                  [disabled]="!uploadFile"
+                  (change)="qrcodeSize"
+                />
+                <span matSuffix>cm &nbsp;</span>
+              </mat-form-field>
+            </div>
+            <div>
+              <mat-label>Size Range</mat-label>
+              <div class="w-64">
+                <mat-slider
+                  [min]="minSlider"
+                  [max]="maxSlider"
+                  step="100"
+                  discrete
+                  [displayWith]="formatLabel"
+                  [style]="'width: 300px'"
+                  [disabled]="!uploadFile"
+                >
+                  <input
+                    [value]="sizeMin"
+                    (valueChange)="onSliderChange($event, 'min')"
+                    matSliderStartThumb
+                  />
+                  <input
+                    [value]="sizeMax"
+                    (valueChange)="onSliderChange($event, 'max')"
+                    matSliderEndThumb
+                  />
+                </mat-slider>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-row items-center justify-between basis-1/2">
+            <div class="flex flex-row gap-4">
+              <div
+                *ngFor="let item of sizeCategory; index as i"
+                class="flex flex-col items-center gap-2 rounded-2xl bg-slate-100 p-4"
+              >
+                <span class="font-semibold">{{ item }}</span>
+                <span *ngIf="i == 0" class="font-light text-xl"
+                  >~{{ sizeMin }}</span
+                >
+                <span *ngIf="i == 1" class="font-light text-xl"
+                  >{{ sizeMin }} - {{ sizeMax }}</span
+                >
+                <span *ngIf="i == 2" class="font-light text-xl"
+                  >{{ sizeMax }}~</span
+                >
+                <span *ngIf="i == 3" class="font-light text-xl">2000</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="flex flex-col items-center gap-2 rounded-2xl bg-slate-100 p-4">
-            <span class="font-semibold">中</span>
-            <span class="font-light text-2xl">300 - 1000</span>
-        </div>
-        <div class="flex flex-col items-center gap-2 rounded-2xl bg-slate-100 p-4">
-            <span class="font-semibold">大</span>
-            <span class="font-light text-2xl">1000~</span>
-        </div>
-        <div class="flex flex-col items-center gap-2 rounded-2xl bg-slate-100 p-4">
-            <span class="font-semibold">外</span>
-            <span class="font-light text-2xl">300</span>
-        </div>
+
+
+        <img
+          *ngIf="resImage"
+          [src]="displayImage(resImage)"
+          alt="Uploaded Image"
+          width="50%"
+        />
+
+        <div class="flex flex-row gap-4 justify-center pt-11">
+          <button
+            *ngIf="!isLoading"
+            mat-raised-button
+            color="primary"
+            [disabled]="!uploadFile"
+            (click)="onSubmit()"
+          >
+            Submit
+          </button>
+          <mat-spinner *ngIf="isLoading" [diameter]="40"></mat-spinner>
+          <button mat-button color="warn" (click)="onReset()" [disabled]="isLoading || !uploadFile">
+            Reset
+          </button>
         </div>
       </div>
 
-      <div class="flex flex-row gap-4 justify-center pt-11">
-        <button mat-raised-button color="primary" [disabled]="true">Submit</button>
-        <button mat-button color="warn">Reset</button>
-      </div>
+      <div class="result-panel">
+        <span class="text-2xl font-thin">結果</span>
 
+        <app-charts *ngIf="!resWeight" [weightData]="[]" [sizeRange]="sizeRanges"></app-charts>
+        <app-charts *ngIf="resWeight" [weightData]="resWeight" [sizeRange]="sizeRanges"></app-charts>
+      </div>
     </div>
   </div>
 </div>

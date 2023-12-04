@@ -1,7 +1,7 @@
 <div
   *ngIf="!url"
 >
-  <div class="flex flex-col gap-4 items-center p-4 border-2 rounded-2xl border-dashed" *ngIf="!isLoading">
+  <div class="flex flex-row gap-4 items-center p-2 border-2 rounded-2xl border-dashed" *ngIf="!isLoading">
     <mat-icon
       aria-hidden="false"
       aria-label="Example home icon"
@@ -9,7 +9,7 @@
       [inline]="true"
       [style]="'font-size: 48px; font-weight: 200;'"
     ></mat-icon>
-    <span class="font-light text-2xl">Drag a file or</span>
+    <!-- <span class="font-light text-2xl">Drag a file or</span> -->
     <input
       type="file"
       accept="image/*"
@@ -27,7 +27,7 @@
   </div>
 </div>
 
-<div *ngIf="url" class="preview-img">
-  <img [src]="url" alt="" />
-  <span class="bg-red-100 text-red-600 p-1 rounded-md absolute delete-btn cursor-pointer top-1/2 right-1/2" (click)="onEraseProcessedImage()">Delete</span>
+<div class="flex" *ngIf="url" class="preview-img">
+  <img [src]="url" alt="" (click)="onEraseProcessedImage()" />
+  <!-- <span class="bg-red-100 text-red-600 p-1 rounded-md absolute delete-btn cursor-pointer top-1/2 right-1/2" (click)="onEraseProcessedImage()">Delete</span> -->
 </div>

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 
 @Component({
   selector: 'app-upload-box',
@@ -10,6 +10,8 @@ export class UploadBoxComponent {
   url!: string;
   isLoading = false;
 
+  @Output() onUploadChange = new EventEmitter()
+
   selectFiles(event: any) {
     this.isLoading = true;
     this.selectedFile = event.target.files[0] as File;
@@ -17,6 +19,7 @@ export class UploadBoxComponent {
     const reader = new FileReader();
     reader.onload = () => {
       this.url = reader.result as string;
+      this.onUploadChange.emit(this.selectedFile);
     };
     reader.readAsDataURL(this.selectedFile);
     this.isLoading = false;

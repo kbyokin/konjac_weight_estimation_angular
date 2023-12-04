@@ -35,7 +35,7 @@ export class SidenavComponent {
   }
 
   onUpload() {
-    this.imageUploadService.uploadImage(this.selectedFile).subscribe({
+    this.imageUploadService.uploadImage(this.selectedFile, 15).subscribe({
       next: (data) => {
         console.log(data);
         // const blob = new Blob([data.file], { type: 'image/png' });
