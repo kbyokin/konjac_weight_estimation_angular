@@ -3,9 +3,11 @@
         <highcharts-chart [Highcharts]="Highcharts" [options]="pieOptions">
         </highcharts-chart>
     </div>
-    <div>
+    <!-- <div>
         <highcharts-chart [Highcharts]="Highcharts" [options]="histOptions">
         </highcharts-chart>
+    </div> -->
+    <div class="chart-container">
+        <canvas #histogramCanvas></canvas>
     </div>
-
 </div>
