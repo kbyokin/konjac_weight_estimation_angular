@@ -62,7 +62,8 @@ export class ChartsComponent implements OnInit, AfterViewInit {
     setTimeout(() => {
       console.log('afterview');
       // this.weightData_ = this.weightData;
-      this.histOptions = this.getHistOptions(this.weightData);
+      this.histOptions = this.getHistOptions_(this.weightData);
+      // this.histOptions = this.getHistOptions(this.weightData);
       this.pieOptions = this.getPieOptions(this.data);
     }, 1);
   }
@@ -102,6 +103,53 @@ export class ChartsComponent implements OnInit, AfterViewInit {
       },
     ];
     return data
+  }
+
+  getHistOptions_(data: any) {
+    const histChartOptions: Highcharts.Options = {
+      title: {
+        text: 'ヒストグラム',
+      },
+      xAxis: [
+        {
+          title: { text: 'Data Range' },
+          alignTicks: false,
+        },
+      ],
+      yAxis: [
+        {
+          // Left axis for histogram counts
+          title: { text: 'Frequency' },
+          min: 0, // Starts at 0 for counts
+        },
+        // {
+        //   // Right axis for scatter data scale
+        //   title: { text: 'Data Values' },
+        //   opposite: true,
+        //   min: 300, // Set based on the minimum scatter value
+        // },
+      ],
+      series: [
+        {
+          name: 'Histogram',
+          type: 'histogram',
+          xAxis: 0,
+          yAxis: 0,
+          baseSeries: 'data',
+          binWidth: 100, // Bin size
+        },
+        // {
+        //   name: 'Data',
+        //   type: 'scatter',
+        //   xAxis: 0,
+        //   yAxis: 1, // Uses the second Y-axis
+        //   visible: false,
+        //   data: data, // Generate random data for demonstration
+        //   id: 'data',
+        // },
+      ],
+    };
+    return histChartOptions;
   }
 
   getHistOptions(data: any) {

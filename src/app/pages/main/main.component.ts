@@ -65,6 +65,7 @@ export class MainComponent implements OnInit, OnDestroy {
   onUploadFileChange(event: any) {
     console.log(event);
     this.uploadFile = event;
+    // this.onReset();
   }
 
   formatLabel(value: number): string {
@@ -108,6 +109,7 @@ export class MainComponent implements OnInit, OnDestroy {
           this.results = data.file;
           this.resImage = data.image;
           this.resWeight = data.info.weights
+          console.log(this.resWeight);
           this.foundQR = data.info.info
           if (this.foundQR == "qr not found") {
             alert(this.foundQR);

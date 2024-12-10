@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class ImageService {
-  private apiUrl = 'http://localhost:8001/get_image'; // Replace with your FastAPI endpoint
+  private apiUrl = 'http://localhost:8001/get_image';
 
   constructor(private http: HttpClient) {}
 
@@ -17,7 +17,7 @@ export class ImageService {
 
     return this.http.get(this.apiUrl, {
       headers: headers,
-      responseType: 'blob', // Ensure the response type is set to Blob
+      responseType: 'blob',
     });
   }
 }
