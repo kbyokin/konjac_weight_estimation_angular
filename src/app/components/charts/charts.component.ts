@@ -1,5 +1,7 @@
-import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Input, OnInit, ElementRef, ViewChild } from '@angular/core';
 import * as Highcharts from 'highcharts';
+import { Chart, registerables } from 'chart.js';
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-charts',
@@ -7,8 +9,14 @@ import * as Highcharts from 'highcharts';
   styleUrls: ['./charts.component.scss'],
 })
 export class ChartsComponent implements OnInit, AfterViewInit {
+  @ViewChild('histogramCanvas') private canvasRef!: ElementRef;
   @Input() weightData: any;
   @Input() sizeRange: any;
+  @Input() binCount: number = 10;
+  @Input() title: string = 'Histogram';
+  @Input() xAxisLabel: string = 'Value';
+  @Input() yAxisLabel: string = 'Frequency';
+  private chart: any;
   Highcharts: typeof Highcharts = Highcharts;
   updateFlag = false;
 
@@ -45,7 +53,11 @@ export class ChartsComponent implements OnInit, AfterViewInit {
     1706.313984320565, 1300.1975598298402, 1946.3992878226843,
     1205.6958522763787, 1083.7481488478738, 481.03366360928874,
     1171.7012072216642, 1076.315148179886, 364.5272297044688, 992.8825300353568,
+    1204.1907585554318, 1083.7481488478738, 481.03366360928874,
+    1171.7012072216642, 1076.315148179886, 364.5272297044688, 992.8825300353568,
     1204.1907585554318,
+    100, 200, 300, 400, 500, 600, 700, 800, 900, 1000,
+    50, 23, 23,11, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
   ];
 
   ngOnInit(): void {
@@ -59,13 +71,98 @@ export class ChartsComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    console.log(this.weightData);
     setTimeout(() => {
       console.log('afterview');
       // this.weightData_ = this.weightData;
       this.histOptions = this.getHistOptions_(this.weightData);
       // this.histOptions = this.getHistOptions(this.weightData);
       this.pieOptions = this.getPieOptions(this.data);
+      this.createChart(this.points);
     }, 1);
+  }
+
+  ngOnChanges(): void {
+    if (this.chart) {
+      this.chart.destroy();
+      this.createChart(this.points);
+    }
+  }
+
+  private createChart(data: any): void {
+    if (!this.data || this.data.length === 0) return;
+
+    // Calculate histogram bins with fixed bin size of 100
+    // const min = Math.floor(Math.min(...data) / 100) * 100;
+    // const max = Math.ceil(Math.max(...data) / 100) * 100;
+    const min = 0;
+    const max = 2000;
+    const binWidth = 100;
+    const binCount = Math.ceil((max - min) / binWidth);
+    const bins = Array(binCount).fill(0);
+
+    // Count frequencies
+    data.forEach((value: any) => {
+      const binIndex = Math.floor((value - min) / binWidth);
+      if (binIndex >= 0 && binIndex < binCount) {
+        bins[binIndex]++;
+      }
+    });
+
+    // Generate bin labels
+    const labels = Array(this.binCount)
+      .fill(0)
+      .map((_, i) => {
+        const start = (min + i * binWidth).toFixed(1);
+        const end = (min + (i + 1) * binWidth).toFixed(1);
+        return `${start} - ${end}`;
+      });
+
+    // Create chart
+    const ctx = this.canvasRef.nativeElement.getContext('2d');
+    this.chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Frequency',
+            data: bins,
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: this.title,
+          },
+          legend: {
+            display: false,
+          },
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: this.xAxisLabel,
+            },
+          },
+          y: {
+            title: {
+              display: true,
+              text: this.yAxisLabel,
+            },
+            beginAtZero: true,
+          },
+        },
+      },
+    });
   }
 
   filterData() {
@@ -102,7 +199,7 @@ export class ChartsComponent implements OnInit, AfterViewInit {
         y: super_large_konjac.length,
       },
     ];
-    return data
+    return data;
   }
 
   getHistOptions_(data: any) {
