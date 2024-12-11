@@ -28,6 +28,7 @@ from scipy.spatial import Delaunay, Voronoi, voronoi_plot_2d
 
 import os
 import sys
+from tqdm import tqdm
 import time
 from pathlib import Path
 from mmdet.apis import init_detector, inference_detector
@@ -82,6 +83,56 @@ rdf_model = joblib.load('/home/kabin/konjac_weight_app/weights/rdf.joblib')
 expandsion_model = joblib.load(
     "/home/kabin/konjac_weight_app/weights/rdf_all_features_0425.joblib")
 
+def process_voronoi(image, konjac_bbox):
+    im_w, im_h = image.shape[1], image.shape[0]
+    center_point = []
+    for indx, bbox in enumerate(konjac_bbox):
+        center = [int((bbox[0] + bbox[2]) / 2), int((bbox[1] + bbox[3]) / 2)]
+        center_point.append(center)
+    
+    
+    regulation_points = [[10, 10], [im_h-10, im_w-10]]
+    count_reg = 0
+    for index, reg_id in enumerate(regulation_points):
+        reg_points_1 = [reg_points for reg_points in range(10, im_w, 500)]
+        reg_points_2 = [reg_points for reg_points in range(10, im_h, 500)]
+        for reg_point in reg_points_1:
+            # print([reg_point, reg_id[0]])
+            center_point.append([reg_point, reg_id[0]])
+            count_reg += 1
+        for reg_point in reg_points_2:
+            # print([reg_id[1], reg_point])
+            center_point.append([reg_id[1], reg_point])
+            count_reg += 1
+    
+    center_point_np = np.array(center_point)
+    tri = Delaunay(center_point_np)
+    Neib = helper.find_neighbors(tri)
+    neighbors = [list(filter(lambda x: x not in range(center_point_np.shape[0] - len(regulation_points), center_point_np.shape[0]), Neib[i])) for i in range(len(Neib))]
+    vor = Voronoi(center_point_np)
+
+    # remove regulation points from neighbors
+    for i in range(len(neighbors)):
+        for j in range(center_point_np.shape[0] - count_reg, center_point_np.shape[0], 1):
+            if j in neighbors[i]:
+                neighbors[i].remove(j)
+
+    return neighbors
+
+def process_occlusion_result(image, visible_masks, occluded_masks):
+    tint_color_vis_mask = np.array([100, 255, 100], dtype=np.uint8)
+    tint_color_occl_mask = np.array([255, 100, 100], dtype=np.uint8)
+    vis_image = np.zeros_like(image)
+    occl_image = np.zeros_like(image)
+    vis_image[visible_masks] = tint_color_vis_mask
+    occl_image[occluded_masks] = tint_color_occl_mask
+
+    # Blend with the background
+    alpha = 0.2  # Opacity level (0: transparent, 1: solid)
+    tinted_image = cv2.addWeighted(vis_image, alpha, image, 1 - alpha, 0)
+    tinted_image = cv2.addWeighted(occl_image, alpha, tinted_image, 1 - alpha, 0)
+    return tinted_image
+
 
 @app.post("/detect_weight_visible")
 async def predict_konjac_weight(file: UploadFile = File(...), qrcodeSize: int = Form(...)):
@@ -117,46 +168,15 @@ async def predict_konjac_weight(file: UploadFile = File(...), qrcodeSize: int = 
         for mask in konjac_masks:
             zero_mask = np.logical_or(mask, zero_mask)
         
-        center_point = []
-        for indx, bbox in enumerate(konjac_bbox):
-            center = [int((bbox[0] + bbox[2]) / 2), int((bbox[1] + bbox[3]) / 2)]
-            center_point.append(center)
-        
-        
-        regulation_points = [[10, 10], [im_h-10, im_w-10]]
-        count_reg = 0
-        for index, reg_id in enumerate(regulation_points):
-            reg_points_1 = [reg_points for reg_points in range(10, im_w, 500)]
-            reg_points_2 = [reg_points for reg_points in range(10, im_h, 500)]
-            for reg_point in reg_points_1:
-                # print([reg_point, reg_id[0]])
-                center_point.append([reg_point, reg_id[0]])
-                count_reg += 1
-            for reg_point in reg_points_2:
-                # print([reg_id[1], reg_point])
-                center_point.append([reg_id[1], reg_point])
-                count_reg += 1
-        
-        center_point_np = np.array(center_point)
-        tri = Delaunay(center_point_np)
-        Neib = helper.find_neighbors(tri)
-        neighbors = [list(filter(lambda x: x not in range(center_point_np.shape[0] - len(regulation_points), center_point_np.shape[0]), Neib[i])) for i in range(len(Neib))]
-        vor = Voronoi(center_point_np)
-
-        # remove regulation points from neighbors
-        for i in range(len(neighbors)):
-            for j in range(center_point_np.shape[0] - count_reg, center_point_np.shape[0], 1):
-                if j in neighbors[i]:
-                    neighbors[i].remove(j)
-
-        print(f'neighbors: {len(neighbors)}')
+        # Voronoi diagram
+        neighbors = process_voronoi(image, konjac_bbox)
         
         print(f'processing occlusion')
         num_occluded = 0
         num_not_occluded = 0
         occluded_images = []
         
-        for mask_index, mask in enumerate(konjac_masks):
+        for mask_index, mask in tqdm(enumerate(konjac_masks), desc='Occlusion processing', total=len(konjac_masks)):
             if len(neighbors[mask_index]) == 0:
                 continue
             occlusion_image = helper.occlusion_input(Image.fromarray(image), mask_index, neighbors[mask_index], konjac_masks, with_bg=False)
@@ -176,8 +196,9 @@ async def predict_konjac_weight(file: UploadFile = File(...), qrcodeSize: int = 
         
         preds = []
         image_batch = []
-        for i, occlusion_image in enumerate(occluded_images):
-            print(f'classifying occlusion image: {i}/{len(occluded_images)}')
+        
+        for i, occlusion_image in tqdm(enumerate(occluded_images), desc='Occlusion classification', total=len(occluded_images)):
+            # print(f'classifying occlusion image: {i}/{len(occluded_images)}')
             occlusion_image = Image.fromarray(occlusion_image)
             occlusion_image = preprocess(occlusion_image).unsqueeze(0)
             _, pred = OcclussionModel.run_inference(model, occlusion_image, device)
@@ -195,6 +216,14 @@ async def predict_konjac_weight(file: UploadFile = File(...), qrcodeSize: int = 
         data = np.array(data)
         visibile_konjac = data[preds == 1]
         occluded_konjac = data[preds == 0]
+        visible_masks = konjac_masks[preds == 1]
+        occluded_masks = konjac_masks[preds == 0]
+        
+        vis_mask = np.any(visible_masks, axis=0)
+        occl_mask = np.any(occluded_masks, axis=0)
+        
+        occlusion_model_result = process_occlusion_result(image, vis_mask, occl_mask)
+        
         print(f'visible konjac: {len(visibile_konjac)}, occluded konjac: {len(occluded_konjac)}')
         # print(f'visible konjac: {visibile_konjac}, occluded konjac: {occluded_konjac}')
         pred_weight = rdf_model.predict(visibile_konjac)
@@ -210,13 +239,18 @@ async def predict_konjac_weight(file: UploadFile = File(...), qrcodeSize: int = 
         response_msg = "qr not found"
         additional_info = {
             'info': response_msg,
-            'size': pixel_per_metric
+            'size': 0
         }
     
     buffer = BytesIO()
-    image = Image.fromarray(image)
-    image.save(buffer, format="JPEG")
-    img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    if occlusion_model_result is not None:
+        image = Image.fromarray(occlusion_model_result)
+        image.save(buffer, format="JPEG")
+        img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    else:
+        image = Image.fromarray(image)
+        image.save(buffer, format="JPEG")
+        img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
     
     end_time = time.time()
     print(f'time: {end_time - start:.2f}s')
