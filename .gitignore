@@ -42,3 +42,4 @@ testem.log
 Thumbs.db
 
 ./api/occlusion_inference
+./api/inference.ipynb
