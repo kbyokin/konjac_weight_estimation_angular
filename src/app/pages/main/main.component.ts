@@ -96,7 +96,14 @@ export class MainComponent implements OnInit, OnDestroy {
     this.selectedMode = event.value;
   }
 
+  onQRcodeSizeChange(event: any) {
+    const inputElement = event.target as HTMLInputElement;
+    const newValue = inputElement.value;
+    this.qrcodeSize = Number(newValue);
+  }
+
   onSubmit() {
+    console.log('qrsize', this.qrcodeSize);
     this.isLoading = true;
     this.imageUploadService
       .uploadImage(this.uploadFile, this.qrcodeSize)

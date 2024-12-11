@@ -42,7 +42,7 @@
                   matInput
                   [value]="qrcodeSize"
                   [disabled]="!uploadFile"
-                  (change)="qrcodeSize"
+                  (change)="onQRcodeSizeChange($event)"
                 />
                 <span matSuffix>cm &nbsp;</span>
               </mat-form-field>
@@ -96,12 +96,13 @@
         </div>
 
 
-        <img
-          *ngIf="resImage"
-          [src]="displayImage(resImage)"
-          alt="Uploaded Image"
-          width="50%"
-        />
+        <div *ngIf="resImage" class="flex flex-col">
+          <img
+            [src]="displayImage(resImage)"
+            alt="Uploaded Image"
+            width="50%"
+          />
+        </div>
 
         <div class="flex flex-row gap-4 justify-center pt-11">
           <button
