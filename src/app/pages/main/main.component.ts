@@ -42,9 +42,9 @@ export class MainComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
     //Add 'implements OnInit' to the class.
-    console.log(this.uploadFile);
+    // console.log(this.uploadFile);
 
-    this.getImage();
+    // this.getImage();
     this.subscription = this.everyfivesecond.subscribe(() => {
       // this.getImage();
     });
@@ -63,7 +63,7 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   onUploadFileChange(event: any) {
-    console.log(event);
+    // console.log(event);
     this.uploadFile = event;
     // this.onReset();
   }
@@ -102,14 +102,14 @@ export class MainComponent implements OnInit, OnDestroy {
       .uploadImage(this.uploadFile, this.qrcodeSize)
       .subscribe({
         next: (data) => {
-          console.log(data);
+          // console.log(data);
           // const blob = new Blob([data.file], { type: 'image/png' });
           // const url = window.URL.createObjectURL(blob);
           // console.log(url);
           this.results = data.file;
           this.resImage = data.image;
           this.resWeight = data.info.weights
-          console.log(this.resWeight);
+          console.log('response data', this.resWeight);
           this.foundQR = data.info.info
           if (this.foundQR == "qr not found") {
             alert(this.foundQR);

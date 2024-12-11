@@ -11,7 +11,7 @@ export class ImageUploadService {
     file: new FormControl(),
     qrcodeSize: new FormControl(),
   };
-  private apiUrl = 'http://127.0.0.1:8000/detect_weight_visible'; // lab server
+  private apiUrl = 'http://172.23.161.109:8000/detect_weight_visible'; // lab server
   // private apiUrl = 'http://172.23.161.159:8000/detect_weight_visible'; // edge computer
   // private apiUrl = 'http://172.23.161.159:8000/detect_weight'; // edge computer
   // private apiUrl = 'http://127.0.0.1:9000/upload/';
