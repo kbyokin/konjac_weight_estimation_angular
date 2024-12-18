@@ -79,7 +79,8 @@ mask_rcnn_config_path = '/home/kabin/mmdetection_2.25/work_dirs/mask_rcnn_r50_ca
 mask_rcnn_model_path = '/home/kabin/mmdetection_2.25/work_dirs/mask_rcnn_r50_caffe_fpn_1x_coco_1000/best_bbox_mAP_epoch_11.pth'
 mmdet_model = init_detector(mask_rcnn_config_path, mask_rcnn_model_path, device='cuda:0')
 
-rdf_model = joblib.load('/home/kabin/konjac_weight_app/weights/rdf.joblib')
+rdf_model = joblib.load('/home/kabin/2023/konjac_project/weights/regression/width_height_weight.joblib')
+# rdf_model = joblib.load('/home/kabin/konjac_weight_app/weights/rdf.joblib')
 expandsion_model = joblib.load(
     "/home/kabin/konjac_weight_app/weights/rdf_all_features_0425.joblib")
 
@@ -134,7 +135,7 @@ def process_occlusion_result(image, visible_masks, occluded_masks):
     return tinted_image
 
 
-@app.post("/detect_weight_visible")
+@app.post("/konjac_weight_occlusion")
 async def predict_konjac_weight(file: UploadFile = File(...), qrcodeSize: int = Form(...)):
     start = time.time()
     
@@ -144,6 +145,7 @@ async def predict_konjac_weight(file: UploadFile = File(...), qrcodeSize: int = 
     contents = await file.read()
     image = Image.open(BytesIO(contents))
     image = np.array(image)
+    occlusion_model_result = None
     # Detect QR code
     decodedObjs = helper.decode(image, qrcodeSize)
     print(decodedObjs)
@@ -236,11 +238,26 @@ async def predict_konjac_weight(file: UploadFile = File(...), qrcodeSize: int = 
             'size': pixel_per_metric
         }
     else:
+        pred = inference_detector(mmdet_model, image)
+        pixel_per_metric = decodedObjs['pixel_per_metric']
+        
+        threshold = 0.3
+        konjac_bbox_ = np.array(pred[0][0])
+        konjac_masks = np.array(pred[1][0])
+        print(f'len konjac_bbox: {len(konjac_bbox_)}')
+        print(f'len konjac_masks: {len(konjac_masks)}')
+        konjac_bbox = konjac_bbox_[konjac_bbox_[:, 4] > threshold]
+        konjac_masks = konjac_masks[konjac_bbox_[:, 4] > threshold]
+        print(f'removed {len(konjac_bbox_) - len(konjac_bbox)}')
+        
         response_msg = "qr not found"
         additional_info = {
             'info': response_msg,
-            'size': 0
+            'size': 0,
+            'konjac_bbox': konjac_bbox.tolist()
         }
+        
+        print(f'konjac_bbox: {konjac_bbox}')
     
     buffer = BytesIO()
     if occlusion_model_result is not None:
