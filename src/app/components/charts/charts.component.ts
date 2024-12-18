@@ -12,7 +12,7 @@ export class ChartsComponent implements OnInit, AfterViewInit {
   @ViewChild('histogramCanvas') private canvasRef!: ElementRef;
   @Input() weightData: any;
   @Input() sizeRange: any;
-  @Input() binCount: number = 10;
+  @Input() binCount: number = 20;
   @Input() title: string = 'Histogram';
   @Input() xAxisLabel: string = 'Value';
   @Input() yAxisLabel: string = 'Frequency';
@@ -25,7 +25,7 @@ export class ChartsComponent implements OnInit, AfterViewInit {
 
   weightData_ = [];
 
-  data = [
+  dataWithRange = [
     {
       name: '小',
       y: 0,
@@ -62,35 +62,36 @@ export class ChartsComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     // this.weightData_ = this.weightData
-    console.log(this.sizeRange);
+    console.log('on init sizeRange: ', this.sizeRange);
     this.histOptions = this.getHistOptions(this.weightData);
-    this.pieOptions = this.getPieOptions(this.data);
-    console.log(this.weightData);
-    this.data = this.filterData();
-    console.log(this.data);
+    this.pieOptions = this.getPieOptions(this.dataWithRange);
+    console.log('on init weightData', this.weightData);
+    this.dataWithRange = this.filterData();
+    console.log('on init dataWithRange', this.dataWithRange);
+    this.createChart(this.weightData);
   }
 
   ngAfterViewInit(): void {
-    console.log(this.weightData);
+    console.log('weightData after init: ', this.weightData);
     setTimeout(() => {
-      console.log('afterview');
       // this.weightData_ = this.weightData;
       this.histOptions = this.getHistOptions_(this.weightData);
       // this.histOptions = this.getHistOptions(this.weightData);
-      this.pieOptions = this.getPieOptions(this.data);
-      this.createChart(this.points);
+      this.pieOptions = this.getPieOptions(this.dataWithRange);
+      this.createChart(this.weightData);
     }, 1);
   }
 
   ngOnChanges(): void {
     if (this.chart) {
       this.chart.destroy();
-      this.createChart(this.points);
+      this.createChart(this.weightData);
     }
   }
 
   private createChart(data: any): void {
-    if (!this.data || this.data.length === 0) return;
+    console.log('data for chart in chart', data);
+    if (!data || data.length === 0) return;
 
     // Calculate histogram bins with fixed bin size of 100
     // const min = Math.floor(Math.min(...data) / 100) * 100;
@@ -109,8 +110,10 @@ export class ChartsComponent implements OnInit, AfterViewInit {
       }
     });
 
+    console.log('bins', bins);
+
     // Generate bin labels
-    const labels = Array(this.binCount)
+    const labels = Array(binCount)
       .fill(0)
       .map((_, i) => {
         const start = (min + i * binWidth).toFixed(1);
@@ -166,7 +169,7 @@ export class ChartsComponent implements OnInit, AfterViewInit {
   }
 
   filterData() {
-    console.log(this.sizeRange.min);
+    // console.log(this.sizeRange.min);
     const small_konjac = this.weightData.filter(
       (weight: number) => weight < this.sizeRange.min
     );
@@ -174,7 +177,7 @@ export class ChartsComponent implements OnInit, AfterViewInit {
       (weight: number) =>
         weight > this.sizeRange.min && weight < this.sizeRange.max
     );
-    console.log(medium_konjac.length);
+    // console.log(medium_konjac.length);
     const large_konjac = this.weightData.filter(
       (weight: number) => weight > this.sizeRange.max && weight < 2000
     );
@@ -250,7 +253,7 @@ export class ChartsComponent implements OnInit, AfterViewInit {
   }
 
   getHistOptions(data: any) {
-    console.log(data);
+    // console.log(data);
     const histChartOptions: Highcharts.Options = {
       title: {
         text: 'ヒストグラム',
