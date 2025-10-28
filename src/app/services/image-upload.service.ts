@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -11,12 +12,7 @@ export class ImageUploadService {
     file: new FormControl(),
     qrcodeSize: new FormControl(),
   };
-  // private apiUrl = 'https://konjac.ai-8lab.com/konjac_weight_occlusion'; // lab server
-  private apiUrl = 'https://konjac.ai-8lab.com/detect_weight_visible'; // lab server
-  // private apiUrl = 'http://172.23.161.109:8000/detect_weight_visible'; // lab server
-  // private apiUrl = 'http://172.23.161.159:8000/detect_weight_visible'; // edge computer
-  // private apiUrl = 'http://172.23.161.159:8000/detect_weight'; // edge computer
-  // private apiUrl = 'http://127.0.0.1:9000/upload/';
+  private apiUrl = environment.apiBase;
 
   private serverUrl = 'http://172.23.161.109:9000/predict_laser/';
 
