@@ -13,9 +13,9 @@ export class ChartsComponent implements OnInit, AfterViewInit {
   @Input() weightData: any;
   @Input() sizeRange: any;
   @Input() binCount: number = 20;
-  @Input() title: string = 'Histogram';
-  @Input() xAxisLabel: string = 'Value';
-  @Input() yAxisLabel: string = 'Frequency';
+  @Input() title: string = 'ヒスとグラム';
+  @Input() xAxisLabel: string = '重さ (g)';
+  @Input() yAxisLabel: string = '回数';
   private chart: any;
   Highcharts: typeof Highcharts = Highcharts;
   updateFlag = false;
@@ -55,9 +55,8 @@ export class ChartsComponent implements OnInit, AfterViewInit {
     1171.7012072216642, 1076.315148179886, 364.5272297044688, 992.8825300353568,
     1204.1907585554318, 1083.7481488478738, 481.03366360928874,
     1171.7012072216642, 1076.315148179886, 364.5272297044688, 992.8825300353568,
-    1204.1907585554318,
-    100, 200, 300, 400, 500, 600, 700, 800, 900, 1000,
-    50, 23, 23,11, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
+    1204.1907585554318, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 50,
+    23, 23, 11, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
   ];
 
   ngOnInit(): void {
@@ -118,7 +117,7 @@ export class ChartsComponent implements OnInit, AfterViewInit {
       .map((_, i) => {
         const start = (min + i * binWidth).toFixed(1);
         const end = (min + (i + 1) * binWidth).toFixed(1);
-        return `${start} - ${end}`;
+        return `${Number(start)} - ${Number(end)}`;
       });
 
     // Create chart
@@ -162,7 +161,9 @@ export class ChartsComponent implements OnInit, AfterViewInit {
               text: this.yAxisLabel,
             },
             beginAtZero: true,
+            ticks: { mirror: true },
           },
+          // yAxes: [{ ticks: { mirror: true } }],
         },
       },
     });

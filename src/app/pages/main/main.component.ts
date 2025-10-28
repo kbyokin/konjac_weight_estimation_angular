@@ -109,7 +109,7 @@ export class MainComponent implements OnInit, OnDestroy {
       .uploadImage(this.uploadFile, this.qrcodeSize)
       .subscribe({
         next: (data) => {
-          // console.log(data);
+          console.log(data.info);
           // const blob = new Blob([data.file], { type: 'image/png' });
           // const url = window.URL.createObjectURL(blob);
           // console.log(url);
