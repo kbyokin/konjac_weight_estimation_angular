@@ -14,3 +14,11 @@
         </div>
     </div>
 </div>
+
+<div *ngIf="categorySummaries.length" class="category-summary">
+    <div *ngFor="let summary of categorySummaries" class="summary-card">
+        <span class="summary-title">{{ summary.name }}</span>
+        <span class="summary-range">{{ summary.rangeLabel }}</span>
+        <span class="summary-score">{{ summary.normalized | number:'1.0-1' }}</span>
+    </div>
+</div>

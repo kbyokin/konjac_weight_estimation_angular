@@ -32,6 +32,13 @@ export class ChartsComponent implements OnInit, AfterViewInit, OnChanges {
 
   histOptions: any;
   pieOptions: any;
+  categorySummaries: Array<{
+    name: string;
+    rangeLabel: string;
+    count: number;
+    percentage: number;
+    normalized: number;
+  }> = [];
 
   weightData_ = [];
 
@@ -95,6 +102,7 @@ export class ChartsComponent implements OnInit, AfterViewInit, OnChanges {
     this.dataWithRange = this.filterData();
     this.histOptions = this.getHistOptions(this.sanitizedWeights);
     this.pieOptions = this.getPieOptions(this.dataWithRange);
+    this.categorySummaries = this.buildCategorySummaries(this.dataWithRange);
     this.updateFlag = !this.updateFlag;
   }
 
@@ -395,5 +403,34 @@ export class ChartsComponent implements OnInit, AfterViewInit, OnChanges {
     };
 
     return pieChartOptions;
+  }
+
+  private buildCategorySummaries(data: { name: string; y: number }[]): Array<{
+    name: string;
+    rangeLabel: string;
+    count: number;
+    percentage: number;
+    normalized: number;
+  }> {
+    const total = this.sanitizedWeights.length;
+    const safeRange = this.sizeRange ?? { min: 0, max: 0 };
+
+    const rangeLabels: Record<string, string> = {
+      '小': `~${safeRange.min}`,
+      '中': `${safeRange.min} - ${safeRange.max}`,
+      '大': `${safeRange.max}~`,
+      '外': '> 2000',
+    };
+
+    return data.map((entry) => {
+      const percentage = total > 0 ? (entry.y / total) * 100 : 0;
+      return {
+        name: entry.name,
+        rangeLabel: rangeLabels[entry.name] ?? '',
+        count: entry.y,
+        percentage,
+        normalized: percentage / 10,
+      };
+    });
   }
 }

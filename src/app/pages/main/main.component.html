@@ -50,6 +50,33 @@
               </mat-form-field>
             </div>
             <div class="flex flex-col gap-3">
+              <span class="text-lg font-medium">QR Code Details</span>
+              <div *ngIf="isQrDecoding" class="flex items-center gap-2 text-sm text-slate-600">
+                <mat-spinner [diameter]="24"></mat-spinner>
+                <span>Reading QR code...</span>
+              </div>
+              <div
+                *ngIf="!isQrDecoding && (qrDecodedText || (foundQR && foundQR !== 'qr not found'))"
+                class="rounded-lg bg-slate-100 p-3 text-sm"
+              >
+                {{ qrDecodedText || foundQR }}
+              </div>
+              <div *ngIf="!isQrDecoding && qrDecodeError" class="text-sm text-red-600">
+                {{ qrDecodeError }}
+              </div>
+              <div
+                *ngIf="
+                  !isQrDecoding &&
+                  !qrDecodedText &&
+                  (!foundQR || foundQR === 'qr not found') &&
+                  !qrDecodeError
+                "
+                class="text-sm text-slate-500"
+              >
+                Upload an image to read QR code information.
+              </div>
+            </div>
+            <div class="flex flex-col gap-3">
               <mat-label>Size Range</mat-label>
               <div class="w-full max-w-md">
                 <mat-slider
@@ -103,7 +130,7 @@
             *ngIf="!isLoading"
             mat-raised-button
             color="primary"
-            [disabled]="!uploadFile"
+            [disabled]="submitDisabled"
             (click)="onSubmit()"
           >
             Submit
