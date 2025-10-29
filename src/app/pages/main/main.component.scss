@@ -1,4 +1,39 @@
 .main-page {
-    height: 100%;
-    align-items: center;
+    background-color: #f9fafb;
+}
+
+.result-panel {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+@media (max-width: 639px) {
+    .result-panel {
+        padding: 1.25rem;
+    }
+}
+
+mat-radio-group ::ng-deep .mat-radio-button + .mat-radio-button {
+    margin-left: 1rem;
+}
+
+@media (max-width: 767px) {
+    mat-radio-group ::ng-deep .mat-radio-button + .mat-radio-button {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+}
+
+button[mat-raised-button],
+button[mat-button] {
+    flex: 1;
+}
+
+@media (min-width: 640px) {
+    button[mat-button] {
+        flex: initial;
+        width: auto;
+    }
 }

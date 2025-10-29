@@ -1,13 +1,16 @@
-<div class="flex flex-col gap-4">
-    <div>
-        <highcharts-chart [Highcharts]="Highcharts" [options]="pieOptions">
-        </highcharts-chart>
+<div class="charts-layout">
+    <div class="chart-surface">
+        <highcharts-chart
+            class="responsive-chart"
+            [Highcharts]="Highcharts"
+            [options]="pieOptions"
+            [update]="updateFlag"
+        ></highcharts-chart>
     </div>
-    <!-- <div>
-        <highcharts-chart [Highcharts]="Highcharts" [options]="histOptions">
-        </highcharts-chart>
-    </div> -->
-    <div class="chart-container">
-        <canvas #histogramCanvas></canvas>
+
+    <div class="chart-surface">
+        <div class="chart-container">
+            <canvas #histogramCanvas></canvas>
+        </div>
     </div>
 </div>

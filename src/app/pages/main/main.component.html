@@ -1,10 +1,11 @@
-<div class="main-page p-4 flex justify-center items-center">
-  <div class="flex flex-col gap-4">
-    <span class="font-medium text-2xl">こんにゃくの重量推定</span>
+<div class="main-page flex min-h-screen w-full justify-center px-4 py-6 md:items-center">
+  <div class="flex w-full max-w-6xl flex-col gap-6">
+    <span class="text-center text-2xl font-medium md:text-left">こんにゃくの重量推定</span>
 
-    <div class="flex flex-row gap-4">
-      <div class="flex flex-col control-panel gap-4">
+    <div class="flex flex-col gap-6 xl:flex-row">
+      <div class="flex w-full flex-col gap-6">
         <mat-radio-group
+          class="flex flex-wrap gap-3"
           (change)="onModeChange($event)"
           [value]="selectedMode"
           aria-label="Select an option"
@@ -14,28 +15,29 @@
         </mat-radio-group>
 
         <app-upload-box
+          #uploadBox
           *ngIf="selectedMode == '1'"
           (onUploadChange)="onUploadFileChange($event)"
         ></app-upload-box>
 
-        <div *ngIf="selectedMode == '2'">
-          <p *ngIf="imageUrl == ''">Error Fetching Image</p>
+        <div *ngIf="selectedMode == '2'" class="flex w-full flex-col items-center gap-4">
+          <p *ngIf="imageUrl == ''" class="text-sm text-red-600">Error Fetching Image</p>
           <mat-spinner *ngIf="imageUrl == ''" [diameter]="40"></mat-spinner>
           <img
             *ngIf="imageUrl !== ''"
             [src]="imageUrl"
             alt="Image"
-            width="40%"
+            class="h-auto w-full max-w-md rounded-lg object-contain"
           />
         </div>
 
         <mat-divider></mat-divider>
 
-        <div  *ngIf="!resImage" class="flex flex-row">
-          <div class="flex flex-col basis-1/2 mr-8">
-            <div class="flex flex-col">
-              <span>Additional Informations</span>
-              <mat-form-field class="example-full-width">
+        <div *ngIf="!resImage" class="flex flex-col gap-6 lg:flex-row lg:items-start">
+          <div class="flex w-full flex-col gap-6 lg:basis-1/2 lg:pr-6">
+            <div class="flex flex-col gap-2">
+              <span class="text-lg font-medium">Additional Informations</span>
+              <mat-form-field class="w-full max-w-sm">
                 <mat-label>QR size</mat-label>
                 <input
                   type="number"
@@ -47,16 +49,16 @@
                 <span matSuffix>cm &nbsp;</span>
               </mat-form-field>
             </div>
-            <div>
+            <div class="flex flex-col gap-3">
               <mat-label>Size Range</mat-label>
-              <div class="w-64">
+              <div class="w-full max-w-md">
                 <mat-slider
+                  class="w-full"
                   [min]="minSlider"
                   [max]="maxSlider"
                   step="100"
                   discrete
                   [displayWith]="formatLabel"
-                  [style]="'width: 300px'"
                   [disabled]="!uploadFile"
                 >
                   <input
@@ -73,38 +75,30 @@
               </div>
             </div>
           </div>
-          <div class="flex flex-row items-center justify-between basis-1/2">
-            <div class="flex flex-row gap-4">
-              <div
-                *ngFor="let item of sizeCategory; index as i"
-                class="flex flex-col items-center gap-2 rounded-2xl bg-slate-100 p-4"
-              >
-                <span class="font-semibold">{{ item }}</span>
-                <span *ngIf="i == 0" class="font-light text-xl"
-                  >~{{ sizeMin }}</span
-                >
-                <span *ngIf="i == 1" class="font-light text-xl"
-                  >{{ sizeMin }} - {{ sizeMax }}</span
-                >
-                <span *ngIf="i == 2" class="font-light text-xl"
-                  >{{ sizeMax }}~</span
-                >
-                <span *ngIf="i == 3" class="font-light text-xl">2000</span>
-              </div>
+          <div class="flex w-full flex-wrap justify-between gap-4 lg:basis-1/2 lg:pl-6">
+            <div
+              *ngFor="let item of sizeCategory; index as i"
+              class="flex min-w-[140px] flex-1 flex-col items-center gap-2 rounded-2xl bg-slate-100 p-4"
+            >
+              <span class="font-semibold">{{ item }}</span>
+              <span *ngIf="i == 0" class="text-xl font-light">~{{ sizeMin }}</span>
+              <span *ngIf="i == 1" class="text-xl font-light">{{ sizeMin }} - {{ sizeMax }}</span>
+              <span *ngIf="i == 2" class="text-xl font-light">{{ sizeMax }}~</span>
+              <span *ngIf="i == 3" class="text-xl font-light">2000</span>
             </div>
           </div>
         </div>
 
 
-        <div *ngIf="resImage" class="flex flex-col">
+        <div *ngIf="resImage" class="flex w-full flex-col items-center">
           <img
             [src]="displayImage(resImage)"
             alt="Uploaded Image"
-            width="50%"
+            class="h-auto w-full max-w-xl rounded-lg object-contain"
           />
         </div>
 
-        <div class="flex flex-row gap-4 justify-center pt-11">
+        <div class="flex w-full flex-col items-stretch gap-4 pt-6 sm:flex-row sm:justify-center">
           <button
             *ngIf="!isLoading"
             mat-raised-button
@@ -114,24 +108,22 @@
           >
             Submit
           </button>
-          <mat-spinner *ngIf="isLoading" [diameter]="40"></mat-spinner>
+          <div class="flex justify-center" *ngIf="isLoading">
+            <mat-spinner [diameter]="40"></mat-spinner>
+          </div>
           <button mat-button color="warn" (click)="onReset()" [disabled]="isLoading || !uploadFile">
             Reset
           </button>
         </div>
       </div>
 
-      <!-- <div>
-        <svg width="200" height="200">
-          <circle cx="50" cy="50" [attr.r]="sizeMin / 10" stroke="black" stroke-width="3" fill="red" />
-        </svg>
-      </div> -->
-
-      <div class="result-panel">
+      <div class="result-panel flex w-full flex-col gap-4 xl:max-w-xl">
         <span class="text-2xl font-thin">結果</span>
 
-        <app-charts *ngIf="!resWeight" [weightData]="[]" [sizeRange]="sizeRanges"></app-charts>
-        <app-charts *ngIf="resWeight" [weightData]="resWeight" [sizeRange]="sizeRanges"></app-charts>
+        <app-charts
+          [weightData]="resWeight"
+          [sizeRange]="sizeRanges"
+        ></app-charts>
       </div>
     </div>
   </div>

@@ -1,4 +1,13 @@
-import { AfterViewInit, Component, Input, OnInit, ElementRef, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  Input,
+  OnInit,
+  ElementRef,
+  ViewChild,
+  OnChanges,
+  SimpleChanges,
+} from '@angular/core';
 import * as Highcharts from 'highcharts';
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
@@ -8,14 +17,15 @@ Chart.register(...registerables);
   templateUrl: './charts.component.html',
   styleUrls: ['./charts.component.scss'],
 })
-export class ChartsComponent implements OnInit, AfterViewInit {
-  @ViewChild('histogramCanvas') private canvasRef!: ElementRef;
-  @Input() weightData: any;
-  @Input() sizeRange: any;
+export class ChartsComponent implements OnInit, AfterViewInit, OnChanges {
+  @ViewChild('histogramCanvas') private canvasRef!: ElementRef<HTMLCanvasElement>;
+  @Input() weightData: number[] = [];
+  @Input() sizeRange: { min: number; max: number } | null = null;
   @Input() binCount: number = 20;
   @Input() title: string = 'ヒスとグラム';
   @Input() xAxisLabel: string = '重さ (g)';
   @Input() yAxisLabel: string = '回数';
+  @Input() minChartHeight: number | null = 320;
   private chart: any;
   Highcharts: typeof Highcharts = Highcharts;
   updateFlag = false;
@@ -59,38 +69,57 @@ export class ChartsComponent implements OnInit, AfterViewInit {
     23, 23, 11, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
   ];
 
+  private sanitizedWeights: number[] = [];
+
   ngOnInit(): void {
-    // this.weightData_ = this.weightData
-    console.log('on init sizeRange: ', this.sizeRange);
-    this.histOptions = this.getHistOptions(this.weightData);
-    this.pieOptions = this.getPieOptions(this.dataWithRange);
-    console.log('on init weightData', this.weightData);
-    this.dataWithRange = this.filterData();
-    console.log('on init dataWithRange', this.dataWithRange);
-    this.createChart(this.weightData);
+    this.prepareData();
   }
 
   ngAfterViewInit(): void {
-    console.log('weightData after init: ', this.weightData);
-    setTimeout(() => {
-      // this.weightData_ = this.weightData;
-      this.histOptions = this.getHistOptions_(this.weightData);
-      // this.histOptions = this.getHistOptions(this.weightData);
-      this.pieOptions = this.getPieOptions(this.dataWithRange);
-      this.createChart(this.weightData);
-    }, 1);
+    this.refreshCharts();
   }
 
-  ngOnChanges(): void {
-    if (this.chart) {
-      this.chart.destroy();
-      this.createChart(this.weightData);
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['weightData'] || changes['sizeRange']) {
+      this.prepareData();
+      this.refreshCharts();
     }
   }
 
-  private createChart(data: any): void {
-    console.log('data for chart in chart', data);
-    if (!data || data.length === 0) return;
+  private prepareData(): void {
+    const rawData = Array.isArray(this.weightData) ? this.weightData : [];
+    this.sanitizedWeights = rawData
+      .map((value) => Number(value))
+      .filter((value) => !Number.isNaN(value) && Number.isFinite(value));
+
+    this.dataWithRange = this.filterData();
+    this.histOptions = this.getHistOptions(this.sanitizedWeights);
+    this.pieOptions = this.getPieOptions(this.dataWithRange);
+    this.updateFlag = !this.updateFlag;
+  }
+
+  private refreshCharts(): void {
+    if (!this.canvasRef) {
+      return;
+    }
+
+    if (this.chart) {
+      this.chart.destroy();
+    }
+
+    this.createChart(this.sanitizedWeights);
+  }
+
+  private createChart(data: number[]): void {
+    const canvas = this.canvasRef?.nativeElement;
+    if (!canvas) {
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return;
+    }
 
     // Calculate histogram bins with fixed bin size of 100
     // const min = Math.floor(Math.min(...data) / 100) * 100;
@@ -120,8 +149,6 @@ export class ChartsComponent implements OnInit, AfterViewInit {
         return `${Number(start)} - ${Number(end)}`;
       });
 
-    // Create chart
-    const ctx = this.canvasRef.nativeElement.getContext('2d');
     this.chart = new Chart(ctx, {
       type: 'bar',
       data: {
@@ -139,6 +166,14 @@ export class ChartsComponent implements OnInit, AfterViewInit {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: {
+            top: 12,
+            right: 16,
+            bottom: 8,
+            left: 8,
+          },
+        },
         plugins: {
           title: {
             display: true,
@@ -167,24 +202,27 @@ export class ChartsComponent implements OnInit, AfterViewInit {
         },
       },
     });
+
+    if (this.minChartHeight) {
+      const parentElement = this.canvasRef.nativeElement.parentElement as HTMLElement | null;
+      if (parentElement) {
+        parentElement.style.minHeight = `${this.minChartHeight}px`;
+      }
+    }
   }
 
   filterData() {
-    // console.log(this.sizeRange.min);
-    const small_konjac = this.weightData.filter(
-      (weight: number) => weight < this.sizeRange.min
+    const range = this.sizeRange ?? { min: 0, max: 0 };
+    const dataset = this.sanitizedWeights;
+
+    const small_konjac = dataset.filter((weight: number) => weight < range.min);
+    const medium_konjac = dataset.filter(
+      (weight: number) => weight >= range.min && weight <= range.max
     );
-    const medium_konjac = this.weightData.filter(
-      (weight: number) =>
-        weight > this.sizeRange.min && weight < this.sizeRange.max
+    const large_konjac = dataset.filter(
+      (weight: number) => weight > range.max && weight <= 2000
     );
-    // console.log(medium_konjac.length);
-    const large_konjac = this.weightData.filter(
-      (weight: number) => weight > this.sizeRange.max && weight < 2000
-    );
-    const super_large_konjac = this.weightData.filter(
-      (weight: number) => weight > 2000
-    );
+    const super_large_konjac = dataset.filter((weight: number) => weight > 2000);
     const data = [
       {
         name: '小',

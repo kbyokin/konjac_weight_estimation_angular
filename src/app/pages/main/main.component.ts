@@ -1,7 +1,8 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Observable, timer } from 'rxjs';
 import { ImageUploadService } from 'src/app/services/image-upload.service';
 import { ImageService } from 'src/app/services/image.service';
+import { UploadBoxComponent } from 'src/app/components/upload-box/upload-box.component';
 
 @Component({
   selector: 'app-main',
@@ -10,12 +11,12 @@ import { ImageService } from 'src/app/services/image.service';
 })
 export class MainComponent implements OnInit, OnDestroy {
   qrcodeSize: Number = 15;
-  uploadFile!: File;
+  uploadFile: File | null = null;
   results: any;
   isLoading: boolean = false;
   imageUrl: any;
   resImage: any;
-  resWeight: any;
+  resWeight: number[] = [];
   foundQR: any;
 
   selectedMode: string = '1';
@@ -33,6 +34,8 @@ export class MainComponent implements OnInit, OnDestroy {
 
   subscription: any;
   everyfivesecond: Observable<number> = timer(0, 1000);
+
+  @ViewChild('uploadBox') uploadBoxComponent?: UploadBoxComponent;
 
   constructor(
     private imageUploadService: ImageUploadService,
@@ -64,7 +67,7 @@ export class MainComponent implements OnInit, OnDestroy {
 
   onUploadFileChange(event: any) {
     // console.log(event);
-    this.uploadFile = event;
+    this.uploadFile = event as File;
     // this.onReset();
   }
 
@@ -103,6 +106,9 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
+    if (!this.uploadFile) {
+      return;
+    }
     console.log('qrsize', this.qrcodeSize);
     this.isLoading = true;
     this.imageUploadService
@@ -115,7 +121,7 @@ export class MainComponent implements OnInit, OnDestroy {
           // console.log(url);
           this.results = data.file;
           this.resImage = data.image;
-          this.resWeight = data.info.weights
+          this.resWeight = data.info?.weights ?? [];
           console.log('response data', this.resWeight);
           this.foundQR = data.info.info
           if (this.foundQR == "qr not found") {
@@ -134,5 +140,9 @@ export class MainComponent implements OnInit, OnDestroy {
   onReset() {
     this.resImage = ''
     this.resWeight = []
+    this.imageUrl = ''
+    this.uploadFile = null
+    this.uploadBoxComponent?.reset()
+    this.isLoading = false
   }
 }
